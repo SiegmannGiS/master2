@@ -1,0 +1,74 @@
+Find coordinates from foto-webcam.eu
+
+map.php
+
+chrome console:
+for (var i=0; i<cams.length; i++)
+{
+if (cams[i].link == "http://www.foto-webcam.eu/webcam/wallackhaus-nord/")
+{console.log(cams[i])}
+}
+
+read coordinates and metadata information
+
+for wallackhaus:
+captureInterval
+:
+600
+color
+:
+"#ff0000"
+direction
+:
+360
+elevation
+:
+2304
+errorMsg
+:
+"Wegen einer technischen Störung ist die Kamera derzeit offline"
+focalLen
+:
+18
+hidden
+:
+false
+id
+:
+"wallackhaus-nord"
+imgurl
+:
+"http://www.foto-webcam.eu/webcam/wallackhaus-nord/current/400.jpg"
+keywords
+:
+"Wallackhaus, Berggasthof Wallackhaus, Großglockner Hochalpenstraße,Kärnten,Österreich"
+latitude
+:
+47.069218
+link
+:
+"http://www.foto-webcam.eu/webcam/wallackhaus-nord/"
+localLink
+:
+"/webcam/wallackhaus-nord/"
+longitude
+:
+12.838868
+modtime
+:
+1461012745
+name
+:
+"Wallackhaus Nord"
+offline
+:
+false
+partner
+:
+false
+radius_km
+:
+5
+sector
+:
+63
