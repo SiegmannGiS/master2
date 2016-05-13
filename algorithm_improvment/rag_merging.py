@@ -20,4 +20,4 @@ segments_fz = felzenszwalb(img, scale=500, sigma=0.5, min_size=50)
 
 print("done")
 
-
+print("hallo")
