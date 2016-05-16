@@ -79,9 +79,9 @@ Images = os.listdir(Input.ImagesPath)
 
 for element in Images:
     ImageInfo = element[:-4]
-    #if os.path.exists(os.path.join(Input.SnowClassFolder,"SC%s.txt" %ImageInfo)):
+    if os.path.exists(os.path.join(Input.SnowClassFolder,"SC%s.txt" %ImageInfo)):
     #if element[-4:] == ".jpg":
-    if element == "2014-10-29_08-30_0.jpg":
+    #if element == "2014-10-29_08-30_0.jpg":
         ImagePath = os.path.join(Input.ImagesPath, element)
         print "[+] Image:", ImageInfo
         print("[+] Status: %.2f Prozent" %(float(Images.index(element))/float(len(Images))*100))
@@ -148,12 +148,12 @@ for element in Images:
         hist = np.histogram(arrayview[6,:], bins=np.arange(0, 256))
         maverage = movingaverage(hist[0], 5)
         lmin = argrelextrema(maverage, np.less)[0]
-        index = bisect.bisect(lmin, 127)
+        index = bisect.bisect(lmin, Input.snowpixel)
 
         if index < len(lmin):
             snowpixel = lmin[index]
         else:
-            snowpixel = 127
+            snowpixel = Input.snowpixel
 
         if Input.SnowMethod == 1:
             ## Corripio Snow Detection
@@ -214,7 +214,7 @@ for element in Images:
             # PLOT for Color Histogram
             plt.hist(arrayview[6, :], bins=255, facecolor="#87C4ED", edgecolor='none')
             plt.plot(hist[1][:-1], maverage, color="#2408C2", lw=2)
-            plt.axvline(127, color='r', linestyle='dashed', linewidth=2)
+            plt.axvline(Input.snowpixel, color='r', linestyle='dashed', linewidth=2)
             plt.axvline(snowpixel, color='g', linestyle='dashed', linewidth=2)
             #plt.ylim(ymax=6000)
             plt.xlabel("Digital Number")

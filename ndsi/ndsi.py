@@ -47,7 +47,7 @@ def gdalout(inrast,outrastname,outarray,outformat):
     return True
 
 #path
-path = "C:\Master\settings/vernagtferner14-16\landsat"
+path = "C:\Master\landsat/vernagtferner14-16"
 
 date = "2015-04-10_10-03"
 
@@ -66,7 +66,7 @@ medium_ndsi = np.zeros_like(NDSI)
 medium_ndsi[NDSI >= 0.5] = 1
 
 high_ndsi = np.zeros_like(NDSI)
-high_ndsi[NDSI >= 0.6] = 1
+high_ndsi[NDSI >= 0.8] = 1
 
 inrast = gdal.Open(os.path.join(path,imgb6))
 

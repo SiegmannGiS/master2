@@ -33,7 +33,7 @@ nodata = -9999
 cellsize = 5
 
 # height steps
-heightdistribution = False
+heightdistribution = True
 steps = 50
 
 # load dgm
@@ -80,6 +80,7 @@ if os.path.exists("data.npz"):
                     frame = legend.get_frame()
                     frame.set_edgecolor("black")
                     plt.tight_layout()
+                    plt.savefig("height_distribution.jpeg")
                     plt.show()
 
             prozentflaeche = histsnow[0].astype(float)/histheight[0].astype(float)*100.
