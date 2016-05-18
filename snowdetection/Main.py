@@ -6,7 +6,10 @@ import Input_vernagtferner as Input
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import osgeo.gdal as gdal
-from numpy import genfromtxt
+from scipy.stats import norm
+import matplotlib.mlab as mlab
+from skimage.color import rgb2hsv
+import scipy.spatial
 plt.style.use('ggplot')
 
 def ReadImage(image, img):
@@ -79,15 +82,17 @@ Images = os.listdir(Input.ImagesPath)
 
 for element in Images:
     ImageInfo = element[:-4]
-    if os.path.exists(os.path.join(Input.SnowClassFolder,"SC%s.txt" %ImageInfo)):
+    #if not os.path.exists(os.path.join(Input.SnowClassFolder,"SC%s.txt" %ImageInfo)):
     #if element[-4:] == ".jpg":
-    #if element == "2014-10-29_08-30_0.jpg":
+    if element == "2014-10-03_08-30_0.jpg":
         ImagePath = os.path.join(Input.ImagesPath, element)
         print "[+] Image:", ImageInfo
         print("[+] Status: %.2f Prozent" %(float(Images.index(element))/float(len(Images))*100))
 
 
         img = Image.open(ImagePath)
+        hsv = rgb2hsv(img)
+        v = hsv[:,:,2]*255
 
         # Autocontrast
         #img = ImageOps.autocontrast(img, cutoff=2)
@@ -117,6 +122,8 @@ for element in Images:
         # Image Shadow Detection
         if Input.ShadowDetection:
             #if CloudCover < 25:
+            shadow_viewName = Input.ShadowRastFolder + "SH" + ImageInfo + ".txt"
+            #if not os.path.exists(shadow_viewName):
 
             ShadowPath = ShadowScript.saga_shadow(ImageInfo)
 
@@ -129,10 +136,18 @@ for element in Images:
 
             arrayview[8] = ShadowRaster[arrayview[0].astype(int),arrayview[1].astype(int)]
 
+            # Shadow buffer
+            pts3d = np.array([arrayview[0, :], arrayview[1, :], arrayview[8, :]]).T
+            tree3D = scipy.spatial.cKDTree(pts3d)
+            buffer = tree3D.query_ball_point(pts3d[pts3d[:, 2] == 1], 1)
+            buffer = np.hstack(buffer[:])
+            arrayview[8, buffer] = 1
+
+
+
             shadow_view = np.full((nrows,ncols), nodata, dtype=float)
             shadow_view[arrayview[0].astype(int),arrayview[1].astype(int)] = arrayview[8]
 
-            shadow_viewName = Input.ShadowRastFolder + "SH" + ImageInfo + ".txt"
             np.savetxt(shadow_viewName, shadow_view, header=header, fmt="%.2f", comments="")
 
             if Input.ColorCorrection:
@@ -141,6 +156,10 @@ for element in Images:
             if Input.ShadowAsImage:
                 # ShadowImage for Presentation and Visualization
                 ShadowScript.ShadowToImage(arrayview, r, ImageInfo, img)
+
+        ################################################################################################################
+
+
 
         ################################################################################################################
         # Method for Classifiying Snow
@@ -172,20 +191,24 @@ for element in Images:
             pca = np.divide((rgb_sc - np.min(rgb_sc)), np.max(rgb_sc) - np.min(rgb_sc))
             del rgb_sc
 
-            isnow1 = np.where(arrayview[6, :] >= snowpixel)[0]
+            isnow1 = arrayview[6, :] >= snowpixel
 
-            isnow2 = np.logical_and(np.logical_and(pca[:,2] <pca[:,1], rgb[:,2] >= Input.tbl), rgb[:, 2] < snowpixel).nonzero()[0]
+            isnow2 = (((pca[:, 2] < pca[:, 1]) & (rgb[:, 2] >= Input.tbl)) & (rgb[:, 2] < snowpixel))
 
-            irock = (~(((pca[:, 2] < pca[:, 1]) & (rgb[:,2] >= Input.tbl)) | (rgb[:,2]>=snowpixel)) & (rgb[:,2]<rgb[:,0])).nonzero()[0]
+            irock = (~(((pca[:, 2] < pca[:, 1]) & (rgb[:,2] >= Input.tbl)) | (rgb[:,2] >= snowpixel)) & (rgb[:, 2] < rgb[:, 0]))
 
-            i5050 = (~(((pca[:,2] <pca[:,1]) & (rgb[:,2] >= Input.tbl)) | (rgb[:,2]>=snowpixel)) & (rgb[:,2]>=rgb[:,0])).nonzero()[0]
+            i5050 = (~(((pca[:, 2] < pca[:,1]) & (rgb[:,2] >= Input.tbl)) | (rgb[:,2] >= snowpixel)) & (rgb[:, 2] >= rgb[:, 0]))
 
             del rgb
 
         arrayview[7,isnow1] = 1
 
         if Input.SnowMethod == 2:
-            arrayview[7,isnow2] = 2
+            if Input.ShadowDetection:
+                arrayview[7,(arrayview[8,:] == 1) & isnow2] = 2
+            else:
+                arrayview[7, isnow2] = 2
+
             arrayview[7,irock] = -1
             maxi = snowpixel
             if len(i5050) == 0:
@@ -220,7 +243,7 @@ for element in Images:
             plt.xlabel("Digital Number")
             plt.ylabel("Number of pixels")
             plt.title('Histogram of blue values')
-            plt.show()
+            plt.show(block=False)
 
         if Input.plot2:
             dgm = np.loadtxt(Input.DGM, skiprows=6)
@@ -238,6 +261,7 @@ for element in Images:
             plt.show()
 
         if Input.plot3:
+            #plt.close()
             import plots.colormap as cm
             fig = plt.figure(figsize=(30,10))
             ax = fig.add_subplot(121)
@@ -249,17 +273,70 @@ for element in Images:
 
             ax = fig.add_subplot(122)
             plt.imshow(img)
-            plt.scatter(arrayview[2,:],arrayview[3,:], c=arrayview[7,:], s=1, lw=0, cmap=cm.redgreen)
+            plt.scatter(arrayview[2,:],arrayview[3,:], c=arrayview[7,:], s=2, lw=0, cmap=cm.redgreen)
             plt.xlim(xmin=np.min(arrayview[2,:]), xmax=np.max(arrayview[2,:]))
             plt.ylim(ymin=np.max(arrayview[3,:]),ymax=np.min(arrayview[3,:])-200)
             plt.xticks([])
             plt.yticks([])
             #plt.colorbar()
             plt.tight_layout()
+            figManager = plt.get_current_fig_manager()
+            figManager.window.showMaximized()
             if Input.saveplot3:
                 plt.savefig(os.path.join(Input.pathplot3, "%s.jpg" % ImageInfo))
             else:
-                plt.show()
+                plt.show(block=False)
+
+        if Input.plot4:
+
+            import plots.colormap as cm
+
+            fig = plt.figure(figsize=(30, 20))
+            ax = fig.add_subplot(221)
+            plt.imshow(img)
+            plt.xlim(xmin=np.min(arrayview[2, :]), xmax=np.max(arrayview[2, :]))
+            plt.ylim(ymin=np.max(arrayview[3, :]), ymax=np.min(arrayview[3, :]) - 200)
+            plt.title("Image %s" % ImageInfo, y=1.04)
+            plt.xticks([])
+            plt.yticks([])
+
+            ax = fig.add_subplot(223)
+            plt.imshow(img)
+            plt.scatter(arrayview[2, :], arrayview[3, :], c=arrayview[7, :], s=2, lw=0, cmap=cm.redgreen)
+            plt.xlim(xmin=np.min(arrayview[2, :]), xmax=np.max(arrayview[2, :]))
+            plt.ylim(ymin=np.max(arrayview[3, :]), ymax=np.min(arrayview[3, :]) - 200)
+            plt.title("Image Classification", y=1.04)
+            plt.xticks([])
+            plt.yticks([])
+
+            # plt.colorbar()
+
+            ax = fig.add_subplot(222)
+            plt.hist(arrayview[6, :], bins=255, facecolor="#87C4ED", edgecolor='none')
+            plt.plot(hist[1][:-1], maverage, color="#2408C2", lw=2)
+            plt.axvline(Input.snowpixel, color='r', linestyle='dashed', linewidth=2)
+            plt.axvline(snowpixel, color='g', linestyle='dashed', linewidth=2)
+            # plt.ylim(ymax=6000)
+            plt.xlabel("Digital Number")
+            plt.ylabel("Number of pixels")
+            plt.title('Histogram of blue values', y=1.04)
+
+            ax = fig.add_subplot(224)
+            plt.hist(pca[:, 0], bins=255, alpha=0.5, label="PC 1", range=[0,1])
+            plt.hist(pca[:, 1], bins=255, alpha=0.5, label="PC 2", range=[0,1])
+            plt.hist(pca[:, 2], bins=255, alpha= 0.5, label="PC 3", range=[0,1])
+            plt.ylabel("Number of pixels")
+            plt.xlabel("Normalised PC score")
+            plt.title('Histogram for PCA', y=1.04)
+            plt.legend()
+
+            #figManager = plt.get_current_fig_manager()
+            #figManager.window.showMaximized()
+            plt.tight_layout()
+            if Input.saveplot4:
+                plt.savefig(os.path.join(Input.pathplot4, "%s.jpg" % ImageInfo))
+            else:
+                plt.show(block=False)
             plt.close()
 
         # save correspondence

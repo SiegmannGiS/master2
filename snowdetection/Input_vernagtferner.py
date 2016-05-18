@@ -29,16 +29,16 @@ Temp = "C:\Master/temp/"
     # Options:
     #   1 = Corripio, Histogram Minima > blue value 127
     #   2 = Corripio, Shadow Snow version 2 Practise
-SnowMethod = 1
+SnowMethod = 2
 tbl = 63
 # RGB Threshold if SnowMethod = 2
 RGB =[127,127,127]
-snowpixel = 150 #127
+snowpixel = 127 #127
 
 # SAGA Shadow Detection for improved Snow Detection
     # SAGA GIS has to be installed and Envoirenment Variables for SAGA has to be set
     # Option: True/False
-ShadowDetection = False
+ShadowDetection = True
 Latitude = 46.8720742
 longitude = 10.822774
 summertime = False
@@ -75,8 +75,13 @@ plot1 = False
 plot2 = False
 
 # Classification points in Image
-plot3 = True
-saveplot3 = True
+plot3 = False
+saveplot3 = False
 pathplot3 = "C:\Master\Image_with_snowdetection\Vernagtferner14-16"
+
+# All important information
+plot4 = True
+saveplot4 = True
+pathplot4 = "C:\Master\Image_with_snowdetection\Vernagtferner14-16"
 
 

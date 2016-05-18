@@ -52,8 +52,8 @@ path = "C:\Master\landsat/vernagtferner14-16"
 date = "2015-04-10_10-03"
 
 # Bands
-imgb6 = "LC81930272015100LGN00_B6.TIF"
-imgb3 = "LC81930272015100LGN00_B3.TIF"
+imgb6 = "B6_toar.tif"
+imgb3 = "B3_toar.tif"
 
 b6 = raster2array(os.path.join(path,imgb6))
 b3 = raster2array(os.path.join(path,imgb3))
@@ -66,10 +66,10 @@ medium_ndsi = np.zeros_like(NDSI)
 medium_ndsi[NDSI >= 0.5] = 1
 
 high_ndsi = np.zeros_like(NDSI)
-high_ndsi[NDSI >= 0.8] = 1
+high_ndsi[NDSI > 0.7] = 1
 
 inrast = gdal.Open(os.path.join(path,imgb6))
 
-gdalout(inrast,os.path.join(path,"low_ndsi_%s.tif" %date),low_ndsi,"GTiff")
-gdalout(inrast,os.path.join(path,"medium_ndsi_%s.tif" %date),medium_ndsi,"GTiff")
-gdalout(inrast,os.path.join(path,"high_ndsi_%s.tif" %date),high_ndsi,"GTiff")
+#gdalout(inrast,os.path.join(path,"low_ndsi_%s.tif" %date),low_ndsi,"GTiff")
+#gdalout(inrast,os.path.join(path,"medium_ndsi_%s.tif" %date),medium_ndsi,"GTiff")
+gdalout(inrast,os.path.join(path,"high_ndsi_toar_%s.tif" %date),high_ndsi,"GTiff")
