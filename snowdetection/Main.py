@@ -10,6 +10,8 @@ from scipy.stats import norm
 import matplotlib.mlab as mlab
 from skimage.color import rgb2hsv
 import scipy.spatial
+import math
+from astral import Astral
 plt.style.use('ggplot')
 
 def ReadImage(image, img):
@@ -41,6 +43,11 @@ def movingaverage(values, window):
     smas = np.insert(smas, 0, add)
     smas = np.insert(smas, len(smas), add)
     return smas
+
+
+def findAnglesBetweenTwoVectors1(v1s, v2s):
+    dot = np.einsum('ijk,ijk->ij',[v1s,v1s,v2s],[v2s,v1s,v2s])
+    return np.arccos(dot[0,:]/(np.sqrt(dot[1,:])*np.sqrt(dot[2,:])))
 
 
 # load correspondence file
@@ -125,7 +132,7 @@ for element in Images:
             shadow_viewName = Input.ShadowRastFolder + "SH" + ImageInfo + ".txt"
             #if not os.path.exists(shadow_viewName):
 
-            ShadowPath = ShadowScript.saga_shadow(ImageInfo)
+            ShadowPath, utc = ShadowScript.saga_shadow(ImageInfo)
 
             ShadowFile = gdal.Open(ShadowPath)
             ShadowRaster = ShadowFile.GetRasterBand(1).ReadAsArray()
@@ -137,11 +144,12 @@ for element in Images:
             arrayview[8] = ShadowRaster[arrayview[0].astype(int),arrayview[1].astype(int)]
 
             # Shadow buffer
-            pts3d = np.array([arrayview[0, :], arrayview[1, :], arrayview[8, :]]).T
-            tree3D = scipy.spatial.cKDTree(pts3d)
-            buffer = tree3D.query_ball_point(pts3d[pts3d[:, 2] == 1], 1)
-            buffer = np.hstack(buffer[:])
-            arrayview[8, buffer] = 1
+            # buffersize = 10 # buffersize*cellsize
+            # pts3d = np.array([arrayview[0, :], arrayview[1, :], arrayview[8, :]]).T
+            # tree3D = scipy.spatial.cKDTree(pts3d)
+            # buffer = tree3D.query_ball_point(pts3d[pts3d[:, 2] == 1], buffersize)
+            # buffer = np.hstack(buffer[:])
+            # arrayview[8, buffer] = 1
 
 
 
@@ -336,7 +344,7 @@ for element in Images:
             if Input.saveplot4:
                 plt.savefig(os.path.join(Input.pathplot4, "%s.jpg" % ImageInfo))
             else:
-                plt.show(block=False)
+                plt.show(block=True)
             plt.close()
 
         # save correspondence

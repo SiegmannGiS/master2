@@ -31,6 +31,7 @@ Temp = "C:\Master/temp/"
     #   2 = Corripio, Shadow Snow version 2 Practise
 SnowMethod = 2
 tbl = 63
+snowpixel = 127
 # RGB Threshold if SnowMethod = 2
 RGB =[127,127,127]
 
@@ -40,7 +41,7 @@ RGB =[127,127,127]
 ShadowDetection = True
 Latitude = 47.074531
 longitude = 12.846210
-
+summertime = True
 
 # ColorCorrection of Shadow Areas
     # ShadowDetection has to be true
@@ -64,7 +65,7 @@ ColorOption = 1
 # Shadow as Image
     # Just for Presentation and Visualization
     # Option: True/False
-ShadowAsImage = True
+ShadowAsImage = False
 
 # blue color histogram/ classification plot
 plot1 = False
@@ -77,4 +78,7 @@ plot3 = False
 saveplot3 = False
 pathplot3 = "C:\Master\Image_with_snowdetection\wallackhaus-nord"
 
-
+# All important information
+plot4 = True
+saveplot4 = True
+pathplot4 = "C:\Master\Image_with_snowdetection\wallackhaus-nord"

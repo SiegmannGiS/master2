@@ -2,10 +2,11 @@ import os
 import Input_vernagtferner as Input
 import numpy as np
 from scipy import misc
-from datetime import datetime
+from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 from math import *
 import calendar
+from astral import Astral
 
 File = Input.DGM.split("/")[-1][:-4]
 SAGAFile = File+".sgrd"
@@ -17,7 +18,7 @@ if not os.path.exists(Input.Temp+SAGAFile):
 def summertime(year):
     laststart_sunday = max(week[-1] for week in calendar.monthcalendar(year, 3))
     lastend_sunday = max(week[-1] for week in calendar.monthcalendar(year, 10))
-    return datetime(year=year,month=3,day=laststart_sunday, hour=2),datetime(year=year,month=10,day=laststart_sunday, hour=3)
+    return datetime(year=year,month=3,day=laststart_sunday, hour=2),datetime(year=year,month=10,day=lastend_sunday, hour=3)
 
 
 def saga_shadow(ImageInfo):
@@ -25,7 +26,6 @@ def saga_shadow(ImageInfo):
     ImageInfo = "_".join(ImageInfo.split("_")[:2])
     date = datetime.strptime(ImageInfo,"%Y-%m-%d_%H-%M")
     Minute = "%i" % (int(date.minute) / 60. * 100.)
-    Minute = "%i" % (int(30) / 60. * 100.)
     Moment = "%s.%s" % (date.hour, Minute)
 
     B = 360 / 365 * (date.timetuple().tm_yday - 81)
@@ -33,18 +33,21 @@ def saga_shadow(ImageInfo):
 
     if Input.summertime:
         if summertime(date.year)[0] < date < summertime(date.year)[1]:
-            LST = (float(Moment) + (EoT / 60.)) +1
+            LST = (float(Moment) + (EoT / 60.)) -1
+            utc = date - timedelta(hours=2)
             print("summertime")
         else:
             LST = (float(Moment) + (EoT / 60.))
+            utc = date - timedelta(hours=1)
             print("wintertime")
     else:
         LST = (float(Moment) + (EoT / 60.))
+        utc = date - timedelta(hours=1)
 
-
+    print utc
     day = datetime.strftime(date, "%m/%d/%Y")
-
-    # Calculate solar radiation
+    #LST = LST -0.25
+    #Calculate solar radiation
     os.system("\"C:\Program Files (x86)\SAGA-GIS\saga_cmd\" ta_lighting 2 "
               "-GRD_DEM %s "
               "-GRD_DIRECT %s "
@@ -52,13 +55,14 @@ def saga_shadow(ImageInfo):
               "-MOMENT %s "
               "-PERIOD 0 "
               "-LATITUDE %s "
+              "-METHOD 3"
               % (os.path.join(Input.Temp, SAGAFile), os.path.join(Input.Temp, "Direct.sgrd"), day, LST, Input.Latitude))
 
 
     # os.system("\"C:\Program Files (x86)\SAGA-GIS\saga_cmd\" io_grid 0 -GRID %s%s -FILE %sShadow.txt"
     #           % (Input.Temp,"Direct.sgrd",Input.Temp))
 
-    return os.path.join(Input.Temp, "Direct.sdat")
+    return os.path.join(Input.Temp, "Direct.sdat"),utc
 
 
 def ShadowToImage(arrayview, r, Imageinfo, img):

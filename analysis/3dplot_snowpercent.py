@@ -22,18 +22,18 @@ dgm = "C:\Master\settings/vernagtferner14-16/dgm_vernagtferner.txt"
 glacier = np.loadtxt("C:\Master\settings/vernagtferner14-16/glacierarea.txt",skiprows=6)
 
 # Period to look at
-viewperiod = (datetime(year=2014,month=10,day=10),datetime(year=2015, month=04, day=30))
+viewperiod = (datetime(year=2014,month=10,day=10),datetime(year=2015, month=4, day=30))
 
 # gaussian filter
 gaussian = True
-std = ()
+std = (1)
 
 # nodata
 nodata = -9999
 cellsize = 5
 
 # height steps
-heightdistribution = True
+heightdistribution = False
 steps = 50
 
 # load dgm
@@ -41,10 +41,10 @@ dgm = np.loadtxt(dgm,skiprows=6)
 dgm[dgm == nodata] = np.nan
 
 # read snowfiles
-if os.path.exists("data.npz"):
+if not os.path.exists("data.npz"):
     datalist = []
     for i,file in enumerate(sorted(os.listdir(snowpath))):
-        if i == 0:
+        if i > 0:
             print file
             filepath = os.path.join(snowpath,file)
             date = datetime.strptime("-".join(file.split("_")[:2]), "SC%Y-%m-%d-%H-%M")
@@ -89,7 +89,7 @@ if os.path.exists("data.npz"):
             datalist.append([[date]*len(xticks),xticks,prozentflaeche])
 
     # comment out for plotting height distribution
-    #np.savez_compressed("data.npz", data=datalist)
+    np.savez_compressed("data.npz", data=datalist)
 
 
 with np.load("data.npz") as fobj:
@@ -122,6 +122,7 @@ ax = fig.gca(projection='3d')
 surf = ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap=cm.coolwarm,
                        linewidth=0, antialiased=True)
 
+print data[:,0,0][x]
 ax.set_xticklabels([datetime.strftime(data[:,0,0][x], "%d.%m.%Y") for x in ax.get_xticks()[:-1]])
 ax.tick_params(labelsize=10)
 

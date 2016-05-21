@@ -10,7 +10,7 @@ def percentage(part, whole):
 
 # clear = np.load("C:/master/settings/vernagtferner/clear.npz")["clear"]
 # sky = np.load("C:/master/settings/vernagtferner/sky.npz")["sky"]
-img = imread("C:\Master\images\wallackhaus-nord/2015-12-08_08-30_0.jpg")
+img = imread("C:\Master\images\Vernagtferner14-16/2014-12-12_11-30_0.jpg")
 
 hsv = rgb2hsv(img)
 
@@ -40,7 +40,7 @@ plt.colorbar()
 
 plt.subplot(2, 2, 3)
 #test = img[:,:,2]/255.*100.
-test = img
+test = img[:,:,2]
 plt.imshow(test, interpolation="none", cmap=cm.get_cmap("Greys"))
 plt.colorbar()
 plt.title("Image")
