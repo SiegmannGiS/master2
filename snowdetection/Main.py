@@ -91,7 +91,7 @@ for element in Images:
     ImageInfo = element[:-4]
     #if not os.path.exists(os.path.join(Input.SnowClassFolder,"SC%s.txt" %ImageInfo)):
     #if element[-4:] == ".jpg":
-    if element == "2014-10-03_08-30_0.jpg":
+    if element == "2015-04-14_17-03_0.jpg":
         ImagePath = os.path.join(Input.ImagesPath, element)
         print "[+] Image:", ImageInfo
         print("[+] Status: %.2f Prozent" %(float(Images.index(element))/float(len(Images))*100))
@@ -142,16 +142,6 @@ for element in Images:
             ShadowRaster[ShadowRaster != 1] = 0
 
             arrayview[8] = ShadowRaster[arrayview[0].astype(int),arrayview[1].astype(int)]
-
-            # Shadow buffer
-            # buffersize = 10 # buffersize*cellsize
-            # pts3d = np.array([arrayview[0, :], arrayview[1, :], arrayview[8, :]]).T
-            # tree3D = scipy.spatial.cKDTree(pts3d)
-            # buffer = tree3D.query_ball_point(pts3d[pts3d[:, 2] == 1], buffersize)
-            # buffer = np.hstack(buffer[:])
-            # arrayview[8, buffer] = 1
-
-
 
             shadow_view = np.full((nrows,ncols), nodata, dtype=float)
             shadow_view[arrayview[0].astype(int),arrayview[1].astype(int)] = arrayview[8]
@@ -226,8 +216,32 @@ for element in Images:
             arrayview[7,arrayview[7,:]>1] = 1
             arrayview[7,arrayview[7,:]<0] = 0
 
+        ################################################################################################################
+        # Mean - shift Clustering
 
-
+        # from sklearn.cluster import MeanShift, estimate_bandwidth
+        #
+        # X = np.array(zip(pca[:, 0],pca[:, 1]))
+        #
+        # # Compute clustering with MeanShift
+        #
+        # # The following bandwidth can be automatically detected using
+        # bandwidth = estimate_bandwidth(X, quantile=0.2, n_samples=500)
+        #
+        # ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
+        # ms.fit(X)
+        # labels = ms.labels_
+        # cluster_centers = ms.cluster_centers_
+        #
+        # labels_unique = np.unique(labels)
+        # n_clusters_ = len(labels_unique)
+        #
+        # print("number of estimated clusters : %d" % n_clusters_)
+        #
+        # plt.figure()
+        # plt.imshow(img)
+        # plt.scatter(arrayview[2,:],arrayview[3,:], c=labels, s=2, lw=0)
+        # plt.show()
         ################################################################################################################
         # Create Raster SnowClassified for specific Image
 
