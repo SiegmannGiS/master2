@@ -39,8 +39,10 @@ snowpixel = 127 #127
     # SAGA GIS has to be installed and Envoirenment Variables for SAGA has to be set
     # Option: True/False
 ShadowDetection = True
+Method = 2
 Latitude = 46.8720742
 longitude = 10.822774
+timezone = +1
 summertime = False
 
 

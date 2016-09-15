@@ -39,8 +39,10 @@ RGB =[127,127,127]
     # SAGA GIS has to be installed and Envoirenment Variables for SAGA has to be set
     # Option: True/False
 ShadowDetection = True
+Method = 2
 Latitude = 47.074531
 longitude = 12.846210
+timezone = +1
 summertime = True
 
 # ColorCorrection of Shadow Areas

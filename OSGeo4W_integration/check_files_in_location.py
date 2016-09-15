@@ -10,7 +10,6 @@ mapset = "PERMANENT"
 
 for i,location in enumerate(sorted(os.listdir(gisdb))):
     print("\n\n"+location)
-    gsetup.init(gisbase,gisdb, location, mapset)
 
     gscript.message('Current GRASS GIS 7 environment:')
     print(gscript.gisenv())

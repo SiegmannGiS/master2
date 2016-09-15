@@ -2,8 +2,6 @@ import grass.script as gscript
 import grass.script.setup as gsetup
 import os
 from grass import script
-from grass.pygrass.modules import Module
-
 
 gisbase = r"C:\OSGEO4~1\apps\grass\grass-7.0.4"
 gisdb = r"C:\grassdb"

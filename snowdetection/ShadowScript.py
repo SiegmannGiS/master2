@@ -108,7 +108,7 @@ def ShadowColorCorrection(arrayview):
     if Input.ColorOption == 1:
         # additive shadow removal
 
-        # compiting colour difference between the shadow/lit areas
+        # computing colour difference between the shadow/lit areas
         diff_red = litavg_red - shadowavg_red
         diff_green = litavg_green - shadowavg_green
         diff_blue = litavg_blue - shadowavg_blue

@@ -128,28 +128,35 @@ for element in Images:
 
         # Image Shadow Detection
         if Input.ShadowDetection:
-            #if CloudCover < 25:
-            shadow_viewName = Input.ShadowRastFolder + "SH" + ImageInfo + ".txt"
-            #if not os.path.exists(shadow_viewName):
+            if Input.Method == 1:
+                #if CloudCover < 25:
+                shadow_viewName = Input.ShadowRastFolder + "SH" + ImageInfo + ".txt"
+                #if not os.path.exists(shadow_viewName):
 
-            ShadowPath, utc = ShadowScript.saga_shadow(ImageInfo)
+                ShadowPath, utc = ShadowScript.saga_shadow(ImageInfo)
 
-            ShadowFile = gdal.Open(ShadowPath)
-            ShadowRaster = ShadowFile.GetRasterBand(1).ReadAsArray()
+                ShadowFile = gdal.Open(ShadowPath)
+                ShadowRaster = ShadowFile.GetRasterBand(1).ReadAsArray()
 
-            # Reclass Raster Shadow=1 NoShadow=0
-            ShadowRaster[ShadowRaster == 0] = 1
-            ShadowRaster[ShadowRaster != 1] = 0
+                # Reclass Raster Shadow=1 NoShadow=0
+                ShadowRaster[ShadowRaster == 0] = 1
+                ShadowRaster[ShadowRaster != 1] = 0
 
-            arrayview[8] = ShadowRaster[arrayview[0].astype(int),arrayview[1].astype(int)]
+                arrayview[8] = ShadowRaster[arrayview[0].astype(int),arrayview[1].astype(int)]
 
-            shadow_view = np.full((nrows,ncols), nodata, dtype=float)
-            shadow_view[arrayview[0].astype(int),arrayview[1].astype(int)] = arrayview[8]
+                shadow_view = np.full((nrows,ncols), nodata, dtype=float)
+                shadow_view[arrayview[0].astype(int),arrayview[1].astype(int)] = arrayview[8]
 
-            np.savetxt(shadow_viewName, shadow_view, header=header, fmt="%.2f", comments="")
+                np.savetxt(shadow_viewName, shadow_view, header=header, fmt="%.2f", comments="")
 
-            if Input.ColorCorrection:
-                ShadowScript.ShadowColorCorrection(arrayview)
+            elif Input.Method == 2:
+                # Grass Gis preprocessed shadows
+                shadow_file = os.path.join(Input.ShadowRastFolder,ImageInfo+".asc")
+                radiation_rast = np.loadtxt(shadow_file)
+                ShadowRaster = np.zeros_like(radiation_rast)
+                ShadowRaster[radiation_rast==-9999] = 1
+
+                arrayview[8] = ShadowRaster[arrayview[0].astype(int), arrayview[1].astype(int)]
 
             if Input.ShadowAsImage:
                 # ShadowImage for Presentation and Visualization
@@ -193,9 +200,9 @@ for element in Images:
 
             isnow2 = (((pca[:, 2] < pca[:, 1]) & (rgb[:, 2] >= Input.tbl)) & (rgb[:, 2] < snowpixel))
 
-            irock = (~(((pca[:, 2] < pca[:, 1]) & (rgb[:,2] >= Input.tbl)) | (rgb[:,2] >= snowpixel)) & (rgb[:, 2] < rgb[:, 0]))
+            irock = (~(((pca[:, 2] < pca[:, 1]) & (rgb[:, 2] >= Input.tbl)) | (rgb[:, 2] >= snowpixel)) & (rgb[:, 2] < rgb[:, 0]))
 
-            i5050 = (~(((pca[:, 2] < pca[:,1]) & (rgb[:,2] >= Input.tbl)) | (rgb[:,2] >= snowpixel)) & (rgb[:, 2] >= rgb[:, 0]))
+            i5050 = (~(((pca[:, 2] < pca[:, 1]) & (rgb[:, 2] >= Input.tbl)) | (rgb[:, 2] >= snowpixel)) & (rgb[:, 2] >= rgb[:, 0]))
 
             del rgb
 
@@ -341,7 +348,7 @@ for element in Images:
             # plt.ylim(ymax=6000)
             plt.xlabel("Digital Number")
             plt.ylabel("Number of pixels")
-            plt.title('Histogram of blue values', y=1.04)
+            plt.title('Histogram of blue values', y=1.02)
 
             ax = fig.add_subplot(224)
             plt.hist(pca[:, 0], bins=255, alpha=0.5, label="PC 1", range=[0,1])
@@ -349,7 +356,7 @@ for element in Images:
             plt.hist(pca[:, 2], bins=255, alpha= 0.5, label="PC 3", range=[0,1])
             plt.ylabel("Number of pixels")
             plt.xlabel("Normalised PC score")
-            plt.title('Histogram for PCA', y=1.04)
+            plt.title('Histogram for PCA', y=1.02)
             plt.legend()
 
             #figManager = plt.get_current_fig_manager()

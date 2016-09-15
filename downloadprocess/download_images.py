@@ -145,7 +145,8 @@ def download_vernagt(info_dict,imagelinks,mainpath):
     for imagelink in imagelinks:
         print "Work on: "+str(imagelink[0])
 
-        roundtime = roundTime(imagelink[1]["date"], datetime.timedelta(minutes=30))
+        #roundtime = roundTime(imagelink[1]["date"], datetime.timedelta(minutes=30))
+        roundtime = imagelink[1]["date"]
         imagename = datetime.datetime.strftime(roundtime, "%Y-%m-%d_%H-%M_0.jpg")
         imagepath = os.path.join(mainpath, "images", info_dict["name"], imagename)
 
