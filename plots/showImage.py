@@ -1,10 +1,10 @@
 from skimage.io import imread
 import matplotlib.pyplot as plt
 
-image = imread("C:\Master\images/vernagtferner14-16/2014-10-18_11-30_0.jpg")
+image = imread("D:\Master\Practise\PRACTISE_Matlabv2\Config_Astental\slr_ufs/test.jpg")
 
 
-plt.imshow(image)
+plt.imshow(image, interpolation="none")
 
 y = int(image.shape[0]/2)
 x = int(image.shape[1]/2)

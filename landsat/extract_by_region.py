@@ -29,6 +29,7 @@ for region in os.listdir(path):
     mask = "AOI_"+region.title()
     for element in os.listdir(os.path.join(path,region,"images")):
         if element[-4:] == ".png":
+            print(element)
             year = int(element[9:13])
             jday = int(element[13:16])
             date = datetime.datetime(year, 1, 1) + datetime.timedelta(jday)  # This assumes that the year is 2007
