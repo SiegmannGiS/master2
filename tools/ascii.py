@@ -4,8 +4,7 @@ import os
 
 def read_ascii(path):
     """
-    :param path: Input path
-    :param file: Input file
+    :param path: Input pathfile
     :return: headinfo as tuple, numpy data array
     """
     with open(path) as fobj:
@@ -27,5 +26,6 @@ def write_ascii(path,headinfo,np_data,format="%f"):
     :return: Esri ArcInfo grid
     """
     write_head = "ncols\t%s\nnrows\t%s\nxllcorner\t%s\nyllcorner\t%s\ncellsize\t%s\nnodata_value\t%s" %headinfo
+    np_data[np.isnan(np_data)] = headinfo[-1]
     np.savetxt(path,np_data,fmt=format,header=write_head,comments="")
 

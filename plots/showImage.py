@@ -1,7 +1,7 @@
 from skimage.io import imread
 import matplotlib.pyplot as plt
 
-image = imread("D:\Master\Practise\PRACTISE_Matlabv2\Config_Astental\slr_ufs/test.jpg")
+image = imread("C:\Master\settings/vernagtferner/k2016-10-05_1131_VKA_7996.JPG")
 
 
 plt.imshow(image, interpolation="none")

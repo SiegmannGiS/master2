@@ -1,5 +1,5 @@
 import numpy as np
-import preperation.ascii as ascii
+import tools.ascii as ascii
 import matplotlib.pyplot as plt
 
 def skyline(camera_pos,path):

@@ -1,5 +1,6 @@
 import numpy as np
-import preperation.ascii as ascii
+import tools.ascii as ascii
+import pandas as pd
 import matplotlib.pyplot as plt
 import math
 
@@ -104,12 +105,26 @@ for point in point_pairs:
 # axes[0].axis('image')
 #
 # axes[1].plot(all_direction,all_max_angle)
-plt.figure(1)
-plt.plot(all_direction,all_max_angle)
+# plt.figure(1)
+# plt.plot(all_direction,all_max_angle)
+#
+# plt.figure(2)
+# ax = plt.subplot(1, 1, 1, projection="polar")
+# # for x,y in zip(all_direction,all_dist):
+# #     plt.polar(np.deg2rad(x), y, 'ro')
+# plt.polar(np.deg2rad(all_direction), all_height, 'r-')
+# plt.show()
 
-plt.figure(2)
-ax = plt.subplot(1, 1, 1, projection="polar")
-# for x,y in zip(all_direction,all_dist):
-#     plt.polar(np.deg2rad(x), y, 'ro')
-plt.polar(np.deg2rad(all_direction), all_height, 'r-')
-plt.show()
+
+# Pandas tests
+complete_series = pd.Series(np.array(all_max_angle), np.array([x[0] for x in all_direction]), name="view_angles_360")
+new_index = np.sort(np.concatenate((complete_series.index, np.arange(0,360.1,0.1))))
+complete_series = complete_series.reindex(new_index)
+step_series = complete_series.interpolate(method="index")
+step_series = step_series[np.isnan(complete_series)]
+# step_series = pd.rolling_mean(step_series, window=5, center = True)
+
+# plt.plot(step_series)
+# plt.show()
+
+print "done"

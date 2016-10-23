@@ -8,13 +8,13 @@ gisdb = r"C:\grassdb"
 mapset = "PERMANENT"
 
 for i,location in enumerate(sorted(os.listdir(gisdb))):
-    if i >= 0:
+    if location == "astental":
         print(location)
         # log in location
         gsetup.init(gisbase, gisdb, location, mapset)
 
         # import raster
-        script.run_command("r.in.gdal", input="E:\Master\Practise\PRACTISE_Matlabv2\dem/dgm_%s.txt" %location,
+        script.run_command("r.in.gdal", input="C:\Master\settings\\astental\dgm_astental.asc",
                            output="dem", overwrite=True, flags="oe")
 
         # set region

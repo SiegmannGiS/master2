@@ -26,7 +26,7 @@ for region in os.listdir(path):
             for meta in os.listdir(os.path.join(path,region,folder)):
                 csv = pd.read_csv(os.path.join(path,region,folder,meta))
                 for link in (csv["Download Link"]):
-                    link = link.replace("/options","")+"/FR_BUND/EE"
+                    link = link.replace("/options","")+"/STANDARD/EE"
                     # -options /STANDARD/EE
                     # -options /FR_BUND/EE
                     name = link.split("/")[-3]+".zip"
@@ -36,7 +36,7 @@ for region in os.listdir(path):
                         download(link,os.path.join(saving,name))
                         shutil.move(os.path.join(saving,name),os.path.join(path,region,"images",name))
 
-                        # zip it
+                        # dezip it
                         with open(os.path.join(path,region,"images",name), "rb") as file:
                             zipf = zipfile.ZipFile(file)
                             for element in zipf.namelist():

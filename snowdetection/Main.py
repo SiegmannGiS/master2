@@ -2,7 +2,6 @@ import numpy as np
 from PIL import Image, ImageOps
 from scipy.signal import argrelextrema
 import os, time, bisect, sys, ShadowScript, SkyDetection
-import Input_vernagtferner as Input
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import osgeo.gdal as gdal
@@ -12,6 +11,9 @@ from skimage.color import rgb2hsv
 import scipy.spatial
 import math
 from astral import Astral
+from skimage.io import imread
+
+import Input_astental as Input
 plt.style.use('ggplot')
 
 def ReadImage(image, img):
@@ -51,19 +53,22 @@ def findAnglesBetweenTwoVectors1(v1s, v2s):
 
 
 # load correspondence file
-if os.path.exists(Input.CorrespondenceFile+ "cor.npz"):
-    with np.load(Input.CorrespondenceFile+ "cor.npz") as data:
-        cor = data['cor']
-else:
-    cor = np.loadtxt(Input.CorrespondenceFile, delimiter=",")
-    np.savez_compressed(Input.CorrespondenceFile + "cor.npz", cor=cor)
+cor = np.loadtxt(Input.CorrespondenceFile, delimiter=",")
 
-# index of raster cell, which can be seen
-cond = np.where(cor[7,:] == 1)[0]
-view = cor[:,cond]
-arrayview = np.zeros((9, view.shape[1]))
 # All values minus one, matlab starts with 1
-arrayview[:4,:] = view[:4,:]-1
+cor[:4, :] = cor[:4, :]-1
+
+if Input.mask:
+    mask = imread(Input.MaskFile, as_grey=True)
+    mask = (mask > 0.5).astype(int)
+    cor[7, mask[[cor[3, :].astype(int), cor[2, :].astype(int)]] == 1] = 1
+    view = cor[:,cor[7,:] == 1]
+    arrayview = np.zeros((9, view.shape[1]))
+    arrayview[:4,:] = view[:4,:]
+
+else:
+    arrayview = np.zeros((9, cor.shape[1]))
+    arrayview[:4, :] = cor[:4, :]
 
 
 # read dgm Info
@@ -91,7 +96,7 @@ for element in Images:
     ImageInfo = element[:-4]
     #if not os.path.exists(os.path.join(Input.SnowClassFolder,"SC%s.txt" %ImageInfo)):
     #if element[-4:] == ".jpg":
-    if element == "2015-04-14_17-03_0.jpg":
+    if element == "2014-10-25_10-00.jpg":
         ImagePath = os.path.join(Input.ImagesPath, element)
         print "[+] Image:", ImageInfo
         print("[+] Status: %.2f Prozent" %(float(Images.index(element))/float(len(Images))*100))
@@ -153,6 +158,8 @@ for element in Images:
                 # Grass Gis preprocessed shadows
                 shadow_file = os.path.join(Input.ShadowRastFolder,ImageInfo+".asc")
                 radiation_rast = np.loadtxt(shadow_file)
+                #if not dgm.shape == radiation_rast.shape:
+                #    sys.exit("wrong Calculation of shadows")
                 ShadowRaster = np.zeros_like(radiation_rast)
                 ShadowRaster[radiation_rast==-9999] = 1
 
@@ -160,7 +167,7 @@ for element in Images:
 
             if Input.ShadowAsImage:
                 # ShadowImage for Presentation and Visualization
-                ShadowScript.ShadowToImage(arrayview, r, ImageInfo, img)
+                ShadowScript.ShadowToImage2(arrayview, r, img)
 
         ################################################################################################################
 
@@ -216,10 +223,9 @@ for element in Images:
 
             arrayview[7,irock] = -1
             maxi = snowpixel
-            if len(i5050) == 0:
-                continue
-            mini = np.max([(np.min(arrayview[6,i5050])-1), (Input.tbl - 1)])
-            arrayview[7,i5050] = 1 / (maxi-mini)*(arrayview[6,i5050]-mini)
+            if len(i5050) != 0:
+                mini = np.max([(np.min(arrayview[6,i5050])-1), (Input.tbl - 1)])
+                arrayview[7,i5050] = 1 / (maxi-mini)*(arrayview[6,i5050]-mini)
             arrayview[7,arrayview[7,:]>1] = 1
             arrayview[7,arrayview[7,:]<0] = 0
 
@@ -272,7 +278,7 @@ for element in Images:
             plt.xlabel("Digital Number")
             plt.ylabel("Number of pixels")
             plt.title('Histogram of blue values')
-            plt.show(block=False)
+            plt.show(block=True)
 
         if Input.plot2:
             dgm = np.loadtxt(Input.DGM, skiprows=6)
@@ -282,7 +288,7 @@ for element in Images:
             fig = plt.figure()
             ax = fig.add_subplot(111)
             x = plt.hist(height[arrayview[7,:]==1], bins=height_dif)
-            print x
+            print(x)
             vals = ax.get_yticks()
             ax.set_yticklabels(['{:.2f} $km^2$'.format(x/100) for x in vals])
             plt.xlabel("in meter")
@@ -314,10 +320,11 @@ for element in Images:
             if Input.saveplot3:
                 plt.savefig(os.path.join(Input.pathplot3, "%s.jpg" % ImageInfo))
             else:
-                plt.show(block=False)
+                plt.show(block=True)
 
         if Input.plot4:
-
+            import matplotlib
+            matplotlib.rcParams.update({'font.size': 20})
             import plots.colormap as cm
 
             fig = plt.figure(figsize=(30, 20))
@@ -325,7 +332,7 @@ for element in Images:
             plt.imshow(img)
             plt.xlim(xmin=np.min(arrayview[2, :]), xmax=np.max(arrayview[2, :]))
             plt.ylim(ymin=np.max(arrayview[3, :]), ymax=np.min(arrayview[3, :]) - 200)
-            plt.title("Image %s" % ImageInfo, y=1.04)
+            plt.title("Image %s" % ImageInfo, y=1.02)
             plt.xticks([])
             plt.yticks([])
 
@@ -334,7 +341,7 @@ for element in Images:
             plt.scatter(arrayview[2, :], arrayview[3, :], c=arrayview[7, :], s=2, lw=0, cmap=cm.redgreen)
             plt.xlim(xmin=np.min(arrayview[2, :]), xmax=np.max(arrayview[2, :]))
             plt.ylim(ymin=np.max(arrayview[3, :]), ymax=np.min(arrayview[3, :]) - 200)
-            plt.title("Image Classification", y=1.04)
+            plt.title("Image Classification", y=1.02)
             plt.xticks([])
             plt.yticks([])
 

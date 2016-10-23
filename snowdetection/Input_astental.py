@@ -2,28 +2,32 @@
 # Tested under Windows 7 with Anaconda Python library
 
 # Path for Images:
-ImagesPath = "C:\Master\images/wallackhaus-nord/"
+ImagesPath = "C:\Master\images/astental/"
 
 # Correspondence File
-CorrespondenceFile = "C:\Master\settings/wallackhaus-nord/correspondence.txt"
+CorrespondenceFile = "C:\Master\settings/astental/correspondence.txt"
 
 # Specific DGM File for Correspondence File
-DGM = "C:\Master\settings/wallackhaus-nord/dgm_wallackhaus.txt"
+DGM = "C:\Master\settings/astental/dgm_astental.asc"
 
 # Specific Image for Correspondence File, Good Weather Image (blue sky)
-CorrespondenceImage = "C:\Master\images/wallackhaus-nord/2015-11-03_08-30_0.jpg"
+CorrespondenceImage = "C:\Master\images/astental/ref-2016_08-24-1500.jpg"
 
 # File Folder for saving Snow Classified Raster, Folder needs to exist
-SnowClassFolder = "C:\Master\snowdetection/wallackhaus-nord/"
+SnowClassFolder = "C:\Master\snowdetection/astental/"
 
 # File Folder for saving Shadow Raster, Folder needs to exist
-ShadowRastFolder = "C:\Master\shadows/wallackhaus-nord/"
+ShadowRastFolder = "C:\Master\shadows/astental/"
 
 # Correspondence, Folder needs to exist
-CorrondenceFolder = "C:\Master\correspondence/wallackhaus-nord/"
+CorrondenceFolder = "C:\Master\correspondence/astental/"
 
-# Temp for Saga Files
+# Temp Folder
 Temp = "C:\Master/temp/"
+
+# Use Mask?
+mask = False
+MaskFile = "C:\Master\settings/astental/mask.jpg"
 
 # Method for Classifiying Snow
     # Options:
@@ -38,12 +42,15 @@ RGB =[127,127,127]
 # SAGA Shadow Detection for improved Snow Detection
     # SAGA GIS has to be installed and Envoirenment Variables for SAGA has to be set
     # Option: True/False
+    # Method 1 = Saga Snow detection
+    # Method 2 = Grass Gis preprocessed
+
 ShadowDetection = True
 Method = 2
 Latitude = 47.074531
 longitude = 12.846210
-timezone = +1
-summertime = True
+timezone = 0
+summertime = False
 
 # ColorCorrection of Shadow Areas
     # ShadowDetection has to be true
@@ -67,7 +74,7 @@ ColorOption = 1
 # Shadow as Image
     # Just for Presentation and Visualization
     # Option: True/False
-ShadowAsImage = False
+ShadowAsImage = True
 
 # blue color histogram/ classification plot
 plot1 = False
@@ -78,9 +85,9 @@ plot2 = False
 # Classification points in Image
 plot3 = False
 saveplot3 = False
-pathplot3 = "C:\Master\Image_with_snowdetection\wallackhaus-nord"
+pathplot3 = "C:\Master\Image_with_snowdetection/astental"
 
 # All important information
 plot4 = True
 saveplot4 = True
-pathplot4 = "C:\Master\Image_with_snowdetection\wallackhaus-nord"
+pathplot4 = "C:\Master\Image_with_snowdetection/astental"

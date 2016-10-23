@@ -2,9 +2,7 @@ import grass.script as gscript
 import grass.script.setup as gsetup
 import os
 from grass import script
-from snowdetection import Input_vernagtferner as Input
 from datetime import datetime
-import numpy as np
 
 # Init grass
 gisbase = r"C:\OSGEO4~1\apps\grass\grass-7.0.4"
@@ -15,17 +13,35 @@ gsetup.init(gisbase, gisdb, location, mapset)
 
 # set region
 script.run_command("g.region", rast="dem")
-print("region setted")
+print("region set")
+#
+#Paths
+path = "C:\Master\images/%s" %location
+path1 = "C:\Master\shadows/%s" %location
 
 # iterate over date of images
-for i,name in enumerate(os.listdir(Input.ImagesPath)):
-    if i == 0:
-        ImageInfo = "_".join(name.split("_")[:2])
-        date = datetime.strptime(ImageInfo, "%Y-%m-%d_%H-%M")
+for i, name in enumerate(os.listdir(path)):
+    #if i > 0:
+    if name == "2014-10-25_10-00.jpg":
+        print("\nProgress: %.2f" % (i / float(len(os.listdir(path))) * 100))
+        date = datetime.strptime(name.split(".")[0], "%Y-%m-%d_%H-%M")
+        civil_time = "0"
         yday = date.timetuple().tm_yday
         Minute = "%i" % (int(date.minute) / 60. * 100.)
         Moment = "%s.%s" % (date.hour, Minute)
-        print("start grass command")
-        script.run_command("r.sun", elevation="dem", aspect="dem_aspect", slope="dem_slope", lat="dem_lat",
-                           long="dem_lon", incidout="shadow", civil_time=+1, day=yday, time=Moment, overwrite=True)
-        print("done")
+        os.system("r.sun elevation=dem aspect=dem_aspect slope=dem_slope lat=dem_lat long=dem_lon incidout=shadow"
+              " civil_time=%s day=%s time=%s --overwrite" % (civil_time, yday, Moment))
+        os.system("r.out.ascii input=shadow output=%s.asc null_value=-9999.0 -h --overwrite" % (
+        os.path.join(path1, name.split(".")[0])))
+
+
+# name = "2016-07-10_05-32.jpg"
+# date = datetime(2016,7,10,5,32)
+# civil_time = "0"
+# yday = date.timetuple().tm_yday
+# Minute = "%i" % (int(date.minute) / 60. * 100.)
+# Moment = "%s.%s" % (date.hour, Minute)
+# os.system("r.sun elevation=dem aspect=dem_aspect slope=dem_slope lat=dem_lat long=dem_lon incidout=shadow"
+#           " civil_time=%s day=%s time=%s --overwrite" % (civil_time, yday, Moment))
+# os.system("r.out.ascii input=shadow output=%s.asc null_value=-9999.0 -h --overwrite" % (
+#     os.path.join(path1, name.split(".")[0])))

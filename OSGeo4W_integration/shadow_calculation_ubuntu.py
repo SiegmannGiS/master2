@@ -3,12 +3,21 @@ import grass.script.setup as gsetup
 import os
 from grass import script
 from datetime import datetime
+import argparse
 
+
+parser = argparse.ArgumentParser(description="Schatten fuer Gebiet", usage="python shadow_calculation_ubuntu.py -site vernagtferner")
+parser.add_argument("-site", type=str, help="study site")
+
+args = parser.parse_args()
+location = args.site
+
+print(location)
 # Init grass
 gisbase = r"grass"
 gisdb = r"/home/marcel/grassdb"
 mapset = "PERMANENT"
-location = "vernagtferner"
+#location = "vernagtferner"
 gsetup.init(gisbase, gisdb, location, mapset)
 
 # set region

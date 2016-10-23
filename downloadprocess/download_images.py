@@ -1,4 +1,4 @@
-import os
+import os, sys
 import datetime
 import urllib2, urllib
 from bs4 import BeautifulSoup
@@ -10,32 +10,19 @@ from skimage.io import imread
 from calendar import monthrange
 import time
 from skimage import feature
+from pytz import timezone
+from shutil import move
+import logging
 
 
 def percentage(part, whole):
     return 100 * float(part)/float(whole)
 
 
-def roundTime(dt=None, dateDelta=datetime.timedelta(minutes=1)):
-    """Round a datetime object to a multiple of a timedelta
-    dt : datetime.datetime object, default now.
-    dateDelta : timedelta object, we round to a multiple of this, default 1 minute.
-    Author: Thierry Husson 2012 - Use it as you want but don't blame me.
-            Stijn Nevens 2014 - Changed to use only datetime objects as variables
-    """
-    roundTo = dateDelta.total_seconds()
-
-    if dt == None : dt = datetime.datetime.now()
-    seconds = (dt - dt.min).seconds
-    # // is a floor division, not a comment on following line:
-    rounding = (seconds+roundTo/2) // roundTo * roundTo
-    return dt + datetime.timedelta(0,rounding-seconds,-dt.microsecond)
-
-
 def read_links(line):
     value = line.split(",")
     value[5] = [int(x) for x in value[5][1:-1].split(" ")]
-    key = ["name", "typ", "link", "startmonth", "endmonth", "years", "imagesperday"]
+    key = ["name", "typ", "link", "startmonth", "endmonth", "years", "imagesperday", "timezone", "daylight_saving"]
     info_dict = dict(zip(key, value))
     if info_dict["typ"] == "fotowebcam":
         info_dict["imagesperday"] = info_dict["imagesperday"][1:-1].split(" ")
@@ -88,8 +75,12 @@ def fotowebcam_getimages(info_dict):
         for month in range(start,end+1):
             for day in range(1, monthrange(year, month)[1]+1):
                 for time in info_dict["imagesperday"]:
-                    date = datetime.datetime.strftime(datetime.datetime(year, month, day), "%Y/%m/%d")
-                    liste.append("%s/%s/%s_la.jpg" % (info_dict["link"], date, time))
+                    dobject = datetime.datetime(year, month, day, int(time[:2]), int(time[2:]))
+                    date = timezone("UTC").localize(dobject)
+                    date = date.astimezone(timezone(info_dict["timezone"]))
+                    date = datetime.datetime.strftime(date, "%Y/%m/%d/%H%M_la.jpg")
+                    liste.append("%s/%s" % (info_dict["link"], date))
+
         return liste
 
     downloadlinks = []
@@ -139,19 +130,25 @@ def download_vernagt(info_dict,imagelinks,mainpath):
         os.makedirs(os.path.join(mainpath,"images",info_dict["name"]))
     temppath = os.path.join(mainpath,"temp","temp.jpg")
 
-    refimagepath = "C:\Master\settings/vernagtferner14-16/ref_2016-03-26_1125_VKA_7414.JPG"
+    refimagepath = "C:\Master\settings/%s/ref_2016-03-26_1125_VKA_7414.JPG" % info_dict["name"]
     refnum = edge(refimagepath)
 
     for imagelink in imagelinks:
         print "Work on: "+str(imagelink[0])
 
-        #roundtime = roundTime(imagelink[1]["date"], datetime.timedelta(minutes=30))
-        roundtime = imagelink[1]["date"]
-        imagename = datetime.datetime.strftime(roundtime, "%Y-%m-%d_%H-%M_0.jpg")
+        # Get Image date
+        date = imagelink[1]["date"]
+        date = timezone("UTC").localize(date - datetime.timedelta(hours=1))
+
+
+        imagename = date.strftime("%Y-%m-%d_%H-%M.jpg")
         imagepath = os.path.join(mainpath, "images", info_dict["name"], imagename)
+        print(imagepath)
 
         if not os.path.exists(imagepath):
+            print(imagepath)
             urllib.urlretrieve(imagelink[0], temppath)
+            print("download")
 
             num = edge(temppath)
             prozent = num/refnum*100
@@ -160,50 +157,79 @@ def download_vernagt(info_dict,imagelinks,mainpath):
                 os.rename(temppath,imagepath)
 
 
-
-
-
 def download_fotowebcam(info_dict,imagelinks,mainpath):
+
+    def edge(pathfile,maskpath):
+        image = imread(pathfile, as_grey=True)
+        mask = imread(maskpath, as_grey=True)
+        mask = mask.astype(bool)
+        edges = feature.canny(image, sigma=2)
+        num = np.sum(edges[mask])
+        return float(num),edges
+
     if not os.path.exists(os.path.join(mainpath, "images", info_dict["name"])):
         os.makedirs(os.path.join(mainpath, "images", info_dict["name"]))
     temppath = os.path.join(mainpath, "temp", "temp.jpg")
 
-    with np.load("%s/settings/%s/settings.npz" % (mainpath, info_dict["name"])) as settings:
-        clearmask = settings["clearmask"]
-        skymask = settings["skymask"]
-
     downloadamount = 0
     if downloadamount >= 400000000:
         time.sleep(1800)
-        print "Wait half an hour"
+        print("Wait half an hour")
 
-    for imagelink in imagelinks:
-        print "Work on: " + str(imagelink)
-        urllib.urlretrieve(imagelink, temppath)
-        downloadamount += os.path.getsize(temppath)
+    for i, imagelink in enumerate(imagelinks):
 
-        if not os.path.getsize(temppath) < 500:
-            img = imread(temppath)
-            hsv = rgb2hsv(img)
 
-            clearchannel = (hsv[:, :, 2] * 100).astype(int)
-            cleardecision = clearchannel[clearmask] < 50
+        # Get Image date
+        date = datetime.datetime.strptime("-".join(imagelink.split("/")[-4:]), "%Y-%m-%d-%H%M_la.jpg")
+        if info_dict["daylight_saving"]:
+            date = timezone(info_dict["timezone"]).localize(date)
+            date = date.astimezone(timezone('UTC'))
+        else:
+            date = timezone("UTC").localize(date - datetime.timedelta(hours=1))
 
-            if np.sum(cleardecision) >= 3:
-                skychannel = (hsv[:, :, 1] * 100).astype(int)
-                skydecision = skychannel[skymask] < 30
-                cloud = int(percentage(np.sum(skydecision), np.sum(skymask)))
-                imagename = imagelink.split("/")[-4:]
-                imagename = "%s_%s-%s_%s.jpg" % ("-".join(imagename[0:3]), imagename[3][:2], imagename[3][2:4], cloud)
-                imagepath = os.path.join(mainpath,"images",info_dict["name"],imagename)
-                imagelink = imagelink.replace("_la.","_hu.")
-                print "Clear image: " + imagename
-                if not os.path.exists(imagepath):
-                    urllib.urlretrieve(imagelink, imagepath)
+        img_name = date.strftime("%Y-%m-%d_%H-%M.jpg")
+        img_path = os.path.join(mainpath, "images", info_dict["name"], img_name)
 
+        if not os.path.exists(img_path):
+            print("Work on: " + str(imagelink))
+            urllib.urlretrieve(imagelink, temppath)
+            downloadamount += os.path.getsize(temppath)
+
+            if not os.path.getsize(temppath) < 500:
+
+                # Calculate Edge Pixel Percentage
+                maskpath = os.path.join(mainpath, "settings/%s/ref_la.jpg" % info_dict["name"])
+                if not os.path.exists(os.path.join(mainpath, "temp","last_one.jpg")):
+                    refimagepath = os.path.join(mainpath, "settings/%s/ref_la.jpg" % info_dict["name"])
+                    refnum, edges = edge(refimagepath, maskpath)
+                else:
+                    refimagepath = os.path.join(mainpath, "temp","last_one.jpg")
+                    refnum, edges = edge(refimagepath, maskpath)
+
+
+                num, edges = edge(temppath, maskpath)
+                prozent = num / refnum * 100
+                print(prozent, " %")
+
+                # Check Weather condition
+                if prozent >= 0:
+
+
+                    # Create Name
+                    imagelink = imagelink.replace("_la.", "_hu.")
+                    print("Clear image: " + img_name)
+                    logging.info("%s: %s percent" % (img_name,prozent))
+
+                    # Last image _la
+                    move(temppath, os.path.join(mainpath, "temp","last_one.jpg"))
+
+                    # Download real Image
+                    urllib.urlretrieve(imagelink, img_path)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(filename='image_info.log', level=logging.DEBUG)
+
     outpath = "C:/master"
 
     with open(os.path.join(outpath,"settings/downloadlinks.txt")) as fobj:
@@ -213,6 +239,8 @@ if __name__ == "__main__":
         if i != 0:
             if not line[0] == "#":
                 info_dict = read_links(line)
+
+                print info_dict
 
                 if info_dict["typ"] == "vernagtferner":
                     # Get imagelinks
@@ -227,6 +255,7 @@ if __name__ == "__main__":
                 if info_dict["typ"] == "fotowebcam":
                     # Get imagelinks
                     imagelinks = fotowebcam_getimages(info_dict)
+                    print(imagelinks)
 
                     # Choose by given time information
                     download_fotowebcam(info_dict, imagelinks, outpath)

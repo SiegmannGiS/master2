@@ -10,7 +10,7 @@ def percentage(part, whole):
 
 # clear = np.load("C:/master/settings/vernagtferner/clear.npz")["clear"]
 # sky = np.load("C:/master/settings/vernagtferner/sky.npz")["sky"]
-img = imread("C:\Master\images\Vernagtferner14-16/2014-12-12_11-30_0.jpg")
+img = imread("C:\Master\images\Vernagtferner/2014-10-04_07-30.jpg")
 
 hsv = rgb2hsv(img)
 
@@ -24,30 +24,47 @@ clearchannel = (hsv[:, :, 2] * 100).astype(int)
 # print np.sum(skychannel[sky] < 30)
 # print int(percentage(np.sum(skychannel[sky] < 30),np.sum(sky)))
 
+#
+# fig = plt.figure()
+# st = fig.suptitle("HSV color model", fontsize="x-large")
+#
+# plt.subplot(2, 2, 1)
+# plt.imshow(skychannel, vmin=0, vmax=100, cmap=cm.get_cmap("Greys"), interpolation="none")
+# plt.title("Saturation")
+# plt.colorbar()
+#
+# plt.subplot(2, 2, 2)
+# plt.imshow(clearchannel, vmin=0, vmax=100, cmap=cm.get_cmap("Greys"), interpolation="none")
+# plt.title("Value")
+# plt.colorbar()
+#
+# plt.subplot(2, 2, 3)
+# #test = img[:,:,2]/255.*100.
+# test = img[:,:,2]
+# plt.imshow(test, interpolation="none", cmap=cm.get_cmap("Greys"))
+# plt.colorbar()
+# plt.title("Image")
+#
+# plt.subplot(2, 2, 4)
+# plt.imshow((hsv[:, :, 0] * 360).astype(int), vmin=0, vmax=360, cmap=cm.get_cmap("hsv"), interpolation="none")
+# plt.title("Hue")
+# plt.colorbar()
+# plt.tight_layout()
+# plt.show()
+
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 fig = plt.figure()
-st = fig.suptitle("HSV color model", fontsize="x-large")
+fig.suptitle("HSV color model", fontsize="x-large")
+plt.subplot(1,2,1)
+plt.imshow(img)
 
-plt.subplot(2, 2, 1)
-plt.imshow(skychannel, vmin=0, vmax=100, cmap=cm.get_cmap("Greys"), interpolation="none")
-plt.title("Saturation")
-plt.colorbar()
+plt.subplot(1,2,2)
+ax = plt.gca()
+im = ax.imshow((hsv[:, :, 0] * 360).astype(int), vmin=0, vmax=360, cmap=cm.get_cmap("hsv"), interpolation="none")
+divider = make_axes_locatable(ax)
+cax = divider.append_axes("right", size="5%", pad=0.05)
 
-plt.subplot(2, 2, 2)
-plt.imshow(clearchannel, vmin=0, vmax=100, cmap=cm.get_cmap("Greys"), interpolation="none")
-plt.title("Value")
-plt.colorbar()
-
-plt.subplot(2, 2, 3)
-#test = img[:,:,2]/255.*100.
-test = img[:,:,2]
-plt.imshow(test, interpolation="none", cmap=cm.get_cmap("Greys"))
-plt.colorbar()
-plt.title("Image")
-
-plt.subplot(2, 2, 4)
-plt.imshow((hsv[:, :, 0] * 360).astype(int), vmin=0, vmax=360, cmap=cm.get_cmap("hsv"), interpolation="none")
-plt.title("Hue")
-plt.colorbar()
-plt.tight_layout()
+plt.colorbar(im, cax=cax)
+plt.tight_layout()h
 plt.show()

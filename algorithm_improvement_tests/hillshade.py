@@ -1,5 +1,5 @@
 import numpy as np
-from preperation import ascii
+from tools import ascii
 import matplotlib.pyplot as plt
 from astral import Astral
 import datetime

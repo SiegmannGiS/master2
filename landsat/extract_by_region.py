@@ -22,21 +22,22 @@ arcpy.CheckOutExtension("Spatial")
 
 # Main
 path = "C:\Master\landsat"
+path2 = "C:\Master\landsat\layers"
+scene_dic = {"astental":[191027, 192027], "patscherkofel":[192027, 193027], "vernagtferner":[193027]}
 
+for region in scene_dic.keys():
+    for scene in scene_dic[region]:
+        for imagename in os.listdir(path2):
+            if imagename[3:9] == str(scene):
 
-for region in os.listdir(path):
+                year = int(imagename[9:13])
+                jday = int(imagename[13:16])
+                date = datetime.datetime(year, 1, 1) + datetime.timedelta(jday)  # This assumes that the year is 2007
+                type = imagename.split("_")[1].split(".")[0]
+                newFilename = 'LC8_%s_%s.asc' %(date.strftime('%Y-%m-%d'),type)
 
-    mask = "AOI_"+region.title()
-    for element in os.listdir(os.path.join(path,region,"images")):
-        if element[-4:] == ".png":
-            print(element)
-            year = int(element[9:13])
-            jday = int(element[13:16])
-            date = datetime.datetime(year, 1, 1) + datetime.timedelta(jday)  # This assumes that the year is 2007
-            newFilename = 'lc8_%s.asc' % date.strftime('%Y-%m-%d')
-
-            create_ascii(os.path.join(path,region,"images",element), "C:\Master\settings.gdb/%s" %(mask),
-                         os.path.join(path,region,"ascii",newFilename))
+                create_ascii(os.path.join(path2,imagename), "C:\Master\settings/%s/dgm_%s.asc" %(region,region),
+                             os.path.join(path,region,"landsat",newFilename))
 
 
 

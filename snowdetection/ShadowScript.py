@@ -89,6 +89,14 @@ def ShadowToImage(arrayview, r, Imageinfo, img):
     #plt.savefig("%s.jpg" % Imageinfo)
     plt.close()
 
+def ShadowToImage2(arrayview, r, img):
+    plt.imshow(img)
+    plt.scatter(arrayview[2, :], arrayview[3, :], c=arrayview[8, :], s=2, lw=0, cmap="bwr")
+    plt.show()
+
+
+    print "done"
+
 
 def ShadowColorCorrection(arrayview):
 
