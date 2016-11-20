@@ -1,6 +1,6 @@
 import os
 import datetime
-location = "astental"
+location = "vernagtferner"
 path = "C:\Master\images/%s" %location
 
 def roundTime(dt=None, roundTo=60):

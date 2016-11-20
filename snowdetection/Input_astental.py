@@ -2,7 +2,7 @@
 # Tested under Windows 7 with Anaconda Python library
 
 # Path for Images:
-ImagesPath = "C:\Master\images/astental/"
+ImagesPath = "C:\Master\images_LensCorrection/astental/"
 
 # Correspondence File
 CorrespondenceFile = "C:\Master\settings/astental/correspondence.txt"
@@ -11,7 +11,7 @@ CorrespondenceFile = "C:\Master\settings/astental/correspondence.txt"
 DGM = "C:\Master\settings/astental/dgm_astental.asc"
 
 # Specific Image for Correspondence File, Good Weather Image (blue sky)
-CorrespondenceImage = "C:\Master\images/astental/ref-2016_08-24-1500.jpg"
+CorrespondenceImage = "C:\Master\settings/astental/ref-2016_08-24-1500_corrected.jpg"
 
 # File Folder for saving Snow Classified Raster, Folder needs to exist
 SnowClassFolder = "C:\Master\snowdetection/astental/"
@@ -21,6 +21,12 @@ ShadowRastFolder = "C:\Master\shadows/astental/"
 
 # Correspondence, Folder needs to exist
 CorrondenceFolder = "C:\Master\correspondence/astental/"
+
+# hillshade
+Hillshade = "C:\Master\settings/astental\hillshade.asc"
+
+# extent
+extent = (369479.267204, 374659.267204, 338082.512074, 341352.512074)
 
 # Temp Folder
 Temp = "C:\Master/temp/"
@@ -47,6 +53,8 @@ RGB =[127,127,127]
 
 ShadowDetection = True
 Method = 2
+
+# for Method 1
 Latitude = 47.074531
 longitude = 12.846210
 timezone = 0
@@ -74,7 +82,7 @@ ColorOption = 1
 # Shadow as Image
     # Just for Presentation and Visualization
     # Option: True/False
-ShadowAsImage = True
+ShadowAsImage = False
 
 # blue color histogram/ classification plot
 plot1 = False

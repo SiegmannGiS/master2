@@ -2,10 +2,8 @@ import os
 import numpy as np
 from tools import ascii
 
-filepath = "C:\Master\settings/astental\correspondence.txt"
-path = "C:\Master\settings/astental"
-headinfo = ascii.read_ascii("C:\Master\settings/astental/dgm_astental.asc")[0]
-correspondence = np.loadtxt(filepath, delimiter=",")
+headinfo = ascii.read_ascii("dem_10m_noise.txt")[0]
+correspondence = np.loadtxt("test.txt", delimiter=",")
 
 new = np.transpose(correspondence[:4,:].astype(int))
 # new = zip(new)
@@ -13,8 +11,8 @@ print(headinfo)
 
 print(new)
 
-with open(os.path.join(path,"ortho.txt"), "w") as fobj:
-    for i, element in enumerate(new[::20]):
+with open(os.path.join("","ortho.txt"), "w") as fobj:
+    for i, element in enumerate(new[::50]):
 
         y = (element[0] * headinfo[-2]) + headinfo[3]
         x = (element[1] * headinfo[-2]) + headinfo[2]

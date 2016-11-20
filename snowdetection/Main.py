@@ -1,19 +1,18 @@
+import ShadowScript
+import bisect
+import os
+import sys
+import time
+import matplotlib.pyplot as plt
 import numpy as np
+import osgeo.gdal as gdal
 from PIL import Image, ImageOps
 from scipy.signal import argrelextrema
-import os, time, bisect, sys, ShadowScript, SkyDetection
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import osgeo.gdal as gdal
-from scipy.stats import norm
-import matplotlib.mlab as mlab
 from skimage.color import rgb2hsv
-import scipy.spatial
-import math
-from astral import Astral
-from skimage.io import imread
+import Input_vernagtferner as Input
+from plots import mapplot as splt
+from tools import ascii
 
-import Input_astental as Input
 plt.style.use('ggplot')
 
 def ReadImage(image, img):
@@ -57,12 +56,14 @@ cor = np.loadtxt(Input.CorrespondenceFile, delimiter=",")
 
 # All values minus one, matlab starts with 1
 cor[:4, :] = cor[:4, :]-1
+cor[7,:] = 0
 
 if Input.mask:
-    mask = imread(Input.MaskFile, as_grey=True)
-    mask = (mask > 0.5).astype(int)
-    cor[7, mask[[cor[3, :].astype(int), cor[2, :].astype(int)]] == 1] = 1
+    mask = ascii.read_ascii(Input.MaskFile)[1]
+    mask = mask == 1
+    cor[7, mask[[cor[0, :].astype(int), cor[1, :].astype(int)]] == 1] = 1
     view = cor[:,cor[7,:] == 1]
+
     arrayview = np.zeros((9, view.shape[1]))
     arrayview[:4,:] = view[:4,:]
 
@@ -80,6 +81,8 @@ with open(Input.DGM, "r") as fobj:
     cellsize = float(lines[4].split()[1])
     nodata = float(lines[5].split()[1])
 
+headinfo = ascii.read_ascii(Input.DGM)[0]
+
 # Easy Cloud Cover algoritm
 #BlueSkyMask = SkyDetection.SkyDetection(Input.CorrespondenceImage)
 
@@ -92,11 +95,12 @@ with open(Input.DGM, "r") as fobj:
 
 Images = os.listdir(Input.ImagesPath)
 
-for element in Images:
+for i, element in enumerate(Images):
     ImageInfo = element[:-4]
     #if not os.path.exists(os.path.join(Input.SnowClassFolder,"SC%s.txt" %ImageInfo)):
     #if element[-4:] == ".jpg":
-    if element == "2014-10-25_10-00.jpg":
+    #if element == "2015-02-11_10-26.jpg":
+    if i > 1:
         ImagePath = os.path.join(Input.ImagesPath, element)
         print "[+] Image:", ImageInfo
         print("[+] Status: %.2f Prozent" %(float(Images.index(element))/float(len(Images))*100))
@@ -157,13 +161,14 @@ for element in Images:
             elif Input.Method == 2:
                 # Grass Gis preprocessed shadows
                 shadow_file = os.path.join(Input.ShadowRastFolder,ImageInfo+".asc")
-                radiation_rast = np.loadtxt(shadow_file)
-                #if not dgm.shape == radiation_rast.shape:
-                #    sys.exit("wrong Calculation of shadows")
+                radiation_rast = ascii.read_ascii(shadow_file)[1]
+                if not (nrows,ncols) == radiation_rast.shape:
+                   sys.exit("radiation shape does not match dgm shape")
                 ShadowRaster = np.zeros_like(radiation_rast)
-                ShadowRaster[radiation_rast==-9999] = 1
+                ShadowRaster[np.isnan(radiation_rast)] = 1
 
                 arrayview[8] = ShadowRaster[arrayview[0].astype(int), arrayview[1].astype(int)]
+                #ascii.write_ascii("C:\Master/test/test.asc", headinfo, ShadowRaster, format="%i")
 
             if Input.ShadowAsImage:
                 # ShadowImage for Presentation and Visualization
@@ -182,7 +187,10 @@ for element in Images:
         index = bisect.bisect(lmin, Input.snowpixel)
 
         if index < len(lmin):
-            snowpixel = lmin[index]
+            if lmin[index] < 200:
+                snowpixel = lmin[index]
+            else:
+                snowpixel = Input.snowpixel
         else:
             snowpixel = Input.snowpixel
 
@@ -223,9 +231,10 @@ for element in Images:
 
             arrayview[7,irock] = -1
             maxi = snowpixel
-            if len(i5050) != 0:
+            if len(np.where(i5050 == True)[0]) != 0:
                 mini = np.max([(np.min(arrayview[6,i5050])-1), (Input.tbl - 1)])
                 arrayview[7,i5050] = 1 / (maxi-mini)*(arrayview[6,i5050]-mini)
+
             arrayview[7,arrayview[7,:]>1] = 1
             arrayview[7,arrayview[7,:]<0] = 0
 
@@ -332,7 +341,8 @@ for element in Images:
             plt.imshow(img)
             plt.xlim(xmin=np.min(arrayview[2, :]), xmax=np.max(arrayview[2, :]))
             plt.ylim(ymin=np.max(arrayview[3, :]), ymax=np.min(arrayview[3, :]) - 200)
-            plt.title("Image %s" % ImageInfo, y=1.02)
+            date = ImageInfo.split("_")
+            plt.title("Image %s %s" %(date[0],date[1]), y=1.02)
             plt.xticks([])
             plt.yticks([])
 
@@ -352,19 +362,22 @@ for element in Images:
             plt.plot(hist[1][:-1], maverage, color="#2408C2", lw=2)
             plt.axvline(Input.snowpixel, color='r', linestyle='dashed', linewidth=2)
             plt.axvline(snowpixel, color='g', linestyle='dashed', linewidth=2)
-            # plt.ylim(ymax=6000)
+            plt.ylim(ymax=7500)
             plt.xlabel("Digital Number")
             plt.ylabel("Number of pixels")
             plt.title('Histogram of blue values', y=1.02)
 
             ax = fig.add_subplot(224)
-            plt.hist(pca[:, 0], bins=255, alpha=0.5, label="PC 1", range=[0,1])
-            plt.hist(pca[:, 1], bins=255, alpha=0.5, label="PC 2", range=[0,1])
-            plt.hist(pca[:, 2], bins=255, alpha= 0.5, label="PC 3", range=[0,1])
-            plt.ylabel("Number of pixels")
-            plt.xlabel("Normalised PC score")
-            plt.title('Histogram for PCA', y=1.02)
-            plt.legend()
+            # plt.hist(pca[:, 0], bins=255, alpha=0.5, label="PC 1", range=[0,1])
+            # plt.hist(pca[:, 1], bins=255, alpha=0.5, label="PC 2", range=[0,1])
+            # plt.hist(pca[:, 2], bins=255, alpha= 0.5, label="PC 3", range=[0,1])
+            # plt.ylabel("Number of pixels")
+            # plt.xlabel("Normalised PC score")
+            # plt.title('Histogram for PCA', y=1.02)
+            # plt.legend()
+            background = ascii.read_ascii(Input.Hillshade)[1]
+            raster[raster == -9999] = np.nan
+            splt.mapshow(raster, ax=ax, background=background,extent=Input.extent, cmap=matplotlib.cm.RdYlGn)
 
             #figManager = plt.get_current_fig_manager()
             #figManager.window.showMaximized()

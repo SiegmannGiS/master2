@@ -210,39 +210,40 @@ if __name__ == "__main__":
     cam_hei= 0.0147
     cam_wid= 0.0222
     cam_foc=0.02
-    image_path = "C:\Master\settings/astental/ref-2016_08-24-1500.jpg"
+    image_path = "C:\Master\settings/vernagtferner/k2015-08-03_1132_VKA_6822.JPG"
+    path = "C:\Master\GIS/vernagtferner"
 
     step_series_image, step_inclination_image = get_image_horizon(image_path,cam_hei,cam_wid,cam_foc, 300)
 
     # Raster
-    rast = "C:\Master\GIS/astental/dgm_astental.asc"
-    cam_x, cam_y = 252722.8, 375684.4
-    offset = 22
+    rast = "C:\Master\GIS/vernagtferner/dgm5_vernagtferner.asc"
+    cam_x, cam_y = 209389.7,332820.2
+    offset = 3
 
-    step_series360_raster, step_series720_raster, step_inclination720_raster = get_raster_skyline(rast, cam_x, cam_y, offset)
+    step_series360_raster, step_series720_raster, step_inclination720_raster = get_raster_skyline(path, rast, cam_x, cam_y, offset)
 
-    # RMSE
-    raster_position_image, raster_correlation_image = RMSE_horizon(step_inclination720_raster,step_inclination_image,step_series_image)
-    min_rast_area = np.nanmin(step_series720_raster[raster_position_image.index].values)
-    min_image = np.nanmin(raster_position_image.values)
-
-    raster_position_image = raster_position_image + (min_rast_area - min_image)
-
-    # ORB TEst
-    # xv_coord, yv_coord = np.meshgrid(raster_position_image.index, raster_position_image.values)
-    # empty_image = np.zeros_like(xv_coord)
-    # empty_image[:] = 255
-    # image[raster_position_image.values,]
-
-    print("done")
-
-    ## Plot Correlation
-    plt.figure(3)
-    plt.plot(step_series720_raster)
-    plt.plot(raster_position_image)
-
-    plt.figure(4)
-    plt.plot(step_inclination720_raster)
-    plt.plot(raster_correlation_image)
-
-    plt.show()
+    # # RMSE
+    # raster_position_image, raster_correlation_image = RMSE_horizon(step_inclination720_raster,step_inclination_image,step_series_image)
+    # min_rast_area = np.nanmin(step_series720_raster[raster_position_image.index].values)
+    # min_image = np.nanmin(raster_position_image.values)
+    #
+    # raster_position_image = raster_position_image + (min_rast_area - min_image)
+    #
+    # # ORB TEst
+    # # xv_coord, yv_coord = np.meshgrid(raster_position_image.index, raster_position_image.values)
+    # # empty_image = np.zeros_like(xv_coord)
+    # # empty_image[:] = 255
+    # # image[raster_position_image.values,]
+    #
+    # print("done")
+    #
+    # ## Plot Correlation
+    # plt.figure(3)
+    # plt.plot(step_series720_raster)
+    # plt.plot(raster_position_image)
+    #
+    # plt.figure(4)
+    # plt.plot(step_inclination720_raster)
+    # plt.plot(raster_correlation_image)
+    #
+    # plt.show()

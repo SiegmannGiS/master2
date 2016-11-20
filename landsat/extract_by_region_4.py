@@ -7,9 +7,9 @@ import os, datetime
 def create_ascii(inrast,mask,outrast):
     # Execute ExtractByMask
     outExtractByMask = ExtractByMask(inrast, mask)
-    arcpy.Resample_management(outExtractByMask, "resample", "10", "NEAREST")
+    #arcpy.Resample_management(outExtractByMask, "resample", "10", "NEAREST")
     # Save the output
-    arcpy.RasterToASCII_conversion("resample", outrast)
+    arcpy.RasterToASCII_conversion(outExtractByMask, outrast)
 
 
 # settings

@@ -13,12 +13,12 @@ args = parser.parse_args()
 location = args.site
 
 print(location)
-# Init grass
-gisbase = r"grass"
-gisdb = r"/home/marcel/grassdb"
-mapset = "PERMANENT"
-#location = "vernagtferner"
-gsetup.init(gisbase, gisdb, location, mapset)
+# # Init grass
+# gisbase = r"grass70"
+# gisdb = r"/home/marcel/grassdb"
+# mapset = "PERMANENT"
+# #location = "vernagtferner"
+# gsetup.init(gisbase, gisdb, location, mapset)
 
 # set region
 script.run_command("g.region", rast="dem")
@@ -42,10 +42,13 @@ for i, name in enumerate(lines):
         yday = date.timetuple().tm_yday
         Minute = "%i" % (int(date.minute) / 60. * 100.)
         Moment = "%s.%s" % (date.hour, Minute)
-        os.system("r.sun elevin=dem aspin=dem_aspect slopein=dem_slope latin=dem_lat longin=dem_lon incidout=shadow"
-              " civiltime=%s day=%s time=%s --overwrite" % (civil_time, yday, Moment))
-        os.system("r.out.ascii input=shadow output=%s.asc null=-9999.0 -h" % (
+        print(name)
+        print("civiltime=%s day=%s time=%s" % (civil_time, yday, Moment))
+        os.system("r.sun elevation=dem aspect=dem_aspect slope=dem_slope lat=dem_lat long=dem_lon incidout=shadow"
+              " civil_time=%s day=%s time=%s --overwrite" % (civil_time, yday, Moment))
+        os.system("r.out.gdal input=shadow output=%s.asc format=AAIGrid nodata=-9999.0 --overwrite" % (
         os.path.join(path1, name)))
+
 
 
 # name = "2016-07-10_05-32.jpg"

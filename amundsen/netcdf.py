@@ -13,6 +13,12 @@ class ReadNetCDF(object):
     def close(self):
         self.fobj.close()
 
+    def get_time_list(self):
+        ncdf_time = self.variables['time']
+        time_values = num2date(ncdf_time[:], ncdf_time.units)
+
+        return time_values
+
     def get_time_dict_by_attribute(self, attr):
         if len(self.variables[attr].shape) == 3:
             ncdf_attr = self.variables[attr]

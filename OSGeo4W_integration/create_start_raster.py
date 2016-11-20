@@ -2,19 +2,27 @@ import grass.script as gscript
 import grass.script.setup as gsetup
 import os
 from grass import script
+import argparse
+
+parser = argparse.ArgumentParser(description="Gebiet", usage="python create_start_raster.py -site vernagtferner")
+parser.add_argument("-site", type=str, help="study site")
+
+args = parser.parse_args()
+loca = args.site
+
 
 gisbase = r"C:\OSGEO4~1\apps\grass\grass-7.0.4"
 gisdb = r"C:\grassdb"
 mapset = "PERMANENT"
 
 for i,location in enumerate(sorted(os.listdir(gisdb))):
-    if location == "astental":
+    if location == loca:
         print(location)
         # log in location
         gsetup.init(gisbase, gisdb, location, mapset)
 
         # import raster
-        script.run_command("r.in.gdal", input="C:\Master\settings\\astental\dgm_astental.asc",
+        script.run_command("r.in.gdal", input="C:\Master\settings\\%s\dgm_%s.asc" %(loca,loca),
                            output="dem", overwrite=True, flags="oe")
 
         # set region
